@@ -1,0 +1,60 @@
+###treatment effects by linear mixed model
+library(lme4)
+library(car)
+
+data=read.table("clipboard",sep='\t',header = T)
+fm<-lmer(variable~tillage*warming+(1|time),data=data)
+summary(fm)
+car::Anova(fm,type=2)
+
+###cohen'd
+library(effsize)
+set.seed(45) 
+x <- rnorm(10, 10, 1) 
+y <- rnorm(10, 5, 5) 
+cohen.d(x,y)
+
+####computing individual effect
+library(glmm.hp)
+library(lme4)
+data=read.table("clipboard",sep = "\t",header = T)
+mod1<-lmer(value ~ ST + SM + SOC + TN +(1|time) ,data=data)
+vif(mod1)
+summary(mod1)
+glmm.hp(mod1)
+plot(glmm.hp(mod1))
+
+###violin+boxplot
+library(ggplot2)
+library(gghalves)
+(p1<-ggplot(data,aes(x=treatment,y=value,color=treatment))+
+   #scale_fill_manual(values = c("red","blue"))+
+    scale_colour_manual(values = c("red","blue"))+
+    geom_half_violin(position=position_nudge(x=0.3,y=0),
+                       side='R',adjust=1,trim=F,alpha=0.5,width=0.5)+
+    geom_boxplot(outlier.shape = NA, width =0.4,alpha=0.5,size=1)+
+    stat_summary(fun="mean", geom="point", shape=20, size=2.5, color="black", fill="black",alpha=0.7)+
+    geom_jitter(size =2.5,alpha =0.5,width =0.2)+ 
+    labs(x="",y="Value")+
+    scale_y_continuous(labels = scales::number_format(accuracy = 0.1))+
+    theme_bw()+ theme(panel.grid=element_blank())+
+    theme(strip.text = element_text(size = 15),
+          strip.background = element_rect(fill = "gray95"))+
+    theme(panel.border = element_blank()))
+
+###linear fit
+(p=ggplot(data =data, aes(x = time, y = velue,color=treatment)) +
+   geom_point(size=3) + scale_colour_manual(values = c("red","blue"))+
+   geom_smooth(method = 'glm', formula = y~x, se = TRUE, show.legend = FALSE) + 
+   stat_poly_eq(aes(label = paste(after_stat(rr.label), after_stat(after_stat(p.value.label)), sep = '~`,`~')),
+                formula = y~x, parse = TRUE, label.x.npc = 'left', label.y.npc = 'top', size = 4) +
+   theme_bw()+theme(axis.text=element_text(colour='black',size=12),
+                    axis.title = element_text(colour='black',size=15))+
+   theme(panel.grid = element_blank(), panel.background = element_rect(fill = 'transparent', color = 'gray10'))+
+   theme(strip.text = element_text(size = 12),
+         strip.background = element_rect(fill = "gray95")))
+
+
+
+
+
